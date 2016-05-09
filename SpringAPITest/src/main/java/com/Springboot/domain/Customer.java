@@ -12,10 +12,12 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
+import javax.persistence.Table;
 
 
 @Entity
 @Indexed
+@Table(name = "Customer")
 public class Customer {
 	
     @Id
@@ -43,15 +45,15 @@ public class Customer {
 	
 	public enum AccountStatus{Active, Terminated, Suspended,Approval_In_Progress};
 	
-	private AccountStatus applicationStatus;
+	private AccountStatus AccountStatus;
     
     
-    public AccountStatus getApplicationStatus() {
-		return applicationStatus;
+    public AccountStatus getAccountStatus() {
+		return AccountStatus;
 	}
 
-	public void setApplicationStatus(AccountStatus applicationStatus) {
-		this.applicationStatus = applicationStatus;
+	public void setAccountStatus(AccountStatus AccountStatus) {
+		this.AccountStatus = AccountStatus;
 	}
 
 	public long getId() {
