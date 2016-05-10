@@ -1,6 +1,6 @@
 package com.Springboot.domain;
 
-import java.sql.Date;
+import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -13,11 +13,10 @@ import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 
 @Entity
-@Indexed
-@Table(name = "Customer")
 public class Customer {
 	
     @Id
@@ -29,14 +28,14 @@ public class Customer {
     
     private String LastName;
     
-    private String emailAddress;
+    private String email;
     
-    public String getEmailAddress() {
-		return emailAddress;
+    public String getEmail() {
+		return email;
 	}
 
-	public void setEmailAddress(String emailAddress) {
-		this.emailAddress = emailAddress;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	private Date AccountCreationTimestamp;
@@ -96,14 +95,14 @@ public class Customer {
 		this.modifiedTimestamp = modifiedTimestamp;
 	}
 	
+/*	 public Customer(String firstName, String lastName, String emailAddress) {
+	        this.FirstName = firstName;
+	        this.LastName = lastName;
+	        this.email = emailAddress;
 
-    
-    
-    
-    
-    
-    
-    
+	    }
+	
+*/
 	
 
 }
