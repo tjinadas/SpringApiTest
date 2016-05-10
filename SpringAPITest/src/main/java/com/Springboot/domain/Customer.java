@@ -30,8 +30,18 @@ public class Customer {
     
     private String email;
     
+    private String Password;
+    
     public String getEmail() {
 		return email;
+	}
+
+	public String getPassword() {
+		return Password;
+	}
+
+	public void setPassword(String password) {
+		Password = password;
 	}
 
 	public void setEmail(String email) {
