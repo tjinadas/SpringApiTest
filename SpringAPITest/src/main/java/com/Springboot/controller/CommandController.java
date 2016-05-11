@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.Springboot.commands.AccountLoginCommand;
 import com.Springboot.commands.UpdateAccountCommand;
 import com.Springboot.domain.Customer;
 import com.Springboot.domain.Customer.AccountStatus;
@@ -79,9 +80,37 @@ public class CommandController {
 
 		HashMap<String, String> Successmessage = new HashMap<String, String>();
 		Successmessage.put("message", "Account created!, Please check your email for the confirmation email");
-		return new ResponseEntity(Successmessage, HttpStatus.BAD_REQUEST);
+		return new ResponseEntity(Successmessage, HttpStatus.OK);
 		
 	}
 	
+	//Login API Call 
+	
+	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity userlogin( @RequestBody AccountLoginCommand command) throws Exception{
 
+		Customer exsistingCustomer = customerRepository.findByEmail(command.getUserName());
+		
+		if(exsistingCustomer == null){
+			HashMap<String, String> error = new HashMap<String, String>();
+            error.put("message", "Wrong email or password");
+            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+		}
+		
+		else{
+			String password = exsistingCustomer.getPassword();
+			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
+			if(encoder.matches(command.getPassword(), password)){
+				HashMap<String, String> success = new HashMap<String, String>();
+	            success.put("message", "user authenticated");
+	            return new ResponseEntity(success, HttpStatus.OK);
+			}
+			else{
+				HashMap<String, String> error = new HashMap<String, String>();
+	            error.put("message", "Wrong email or password");
+	            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+				
+			}
+		}
+	}
 }

@@ -7,6 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
@@ -20,9 +21,9 @@ import javax.validation.constraints.NotNull;
 public class Customer {
 	
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES)
-    private long id;
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    private String id;
     
     private String FirstName;
     
@@ -65,11 +66,11 @@ public class Customer {
 		this.AccountStatus = AccountStatus;
 	}
 
-	public long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
