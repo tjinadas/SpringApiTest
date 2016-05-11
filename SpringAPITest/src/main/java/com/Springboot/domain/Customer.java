@@ -2,19 +2,13 @@ package com.Springboot.domain;
 
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+
 
 
 @Entity
@@ -33,8 +27,48 @@ public class Customer {
     
     private String Password;
     
-    public String getEmail() {
+    private String mobileNumber;
+    
+    private double totalRating=0;
+	public double getTotalRating() {
+		return totalRating;
+	}
+
+	public void setTotalRating(double totalRating) {
+		this.totalRating = totalRating;
+	}
+
+	public int getRatingCount() {
+		return ratingCount;
+	}
+
+	public void setRatingCount(int ratingCount) {
+		this.ratingCount = ratingCount;
+	}
+
+	private int ratingCount=0;
+    
+    @Column(length = 2)
+    private String language;
+    
+    public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+
+	public String getEmail() {
 		return email;
+	}
+
+	public String getMobileNumber() {
+		return mobileNumber;
+	}
+
+	public void setMobileNumber(String mobileNumber) {
+		this.mobileNumber = mobileNumber;
 	}
 
 	public String getPassword() {
@@ -105,15 +139,6 @@ public class Customer {
 	public void setModifiedTimestamp(Date modifiedTimestamp) {
 		this.modifiedTimestamp = modifiedTimestamp;
 	}
-	
-/*	 public Customer(String firstName, String lastName, String emailAddress) {
-	        this.FirstName = firstName;
-	        this.LastName = lastName;
-	        this.email = emailAddress;
-
-	    }
-	
-*/
 	
 
 }

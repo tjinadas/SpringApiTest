@@ -13,9 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.Springboot.commands.AccountLoginCommand;
 import com.Springboot.commands.UpdateAccountCommand;
+import com.Springboot.commands.UpdateProviderCommand;
 import com.Springboot.domain.Customer;
 import com.Springboot.domain.Customer.AccountStatus;
+import com.Springboot.domain.Provider;
+import com.Springboot.domain.Provider.AccountType;
+import com.Springboot.domain.Provider.ProviderStatus;
 import com.Springboot.repositories.CustomerRepository;
+import com.Springboot.repositories.ProviderRepository;
 import com.Springboot.utilities.RandomPasswordGenerator;
 
 import java.text.SimpleDateFormat;
@@ -38,6 +43,9 @@ public class CommandController {
 	
 	@Autowired
 	CustomerRepository customerRepository;
+	
+	@Autowired
+	ProviderRepository providerRepository;
 
 	
 	@RequestMapping("/hello")
@@ -46,8 +54,10 @@ public class CommandController {
 		return "Hello";
 	}
 	
-	@RequestMapping(value = "/accountcreation", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity accountcreation( @RequestBody UpdateAccountCommand command) throws Exception{
+	// Registering a customer
+	
+	@RequestMapping(value = "/accountcreationCustomer", method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity accountcreationCustomer( @RequestBody UpdateAccountCommand command) throws Exception{
 		logger.info("accountcreation api is called");
 
 	    Customer customer = new Customer();
@@ -61,12 +71,8 @@ public class CommandController {
 		}
 		
 		 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
-         //String randomPassword = new RandomPasswordGenerator(8).nextString();
-				
 	
 		Date dateCreated = new Date();
-        String formattedDate = new SimpleDateFormat("yyyy/MM/dd").format(dateCreated);
-        String formattedTime = new SimpleDateFormat("HH:mm").format(dateCreated);
 		
         customer.setFirstName(command.getFirstName());
         customer.setLastName(command.getLastName());
@@ -84,10 +90,52 @@ public class CommandController {
 		
 	}
 	
-	//Login API Call 
+	// Registering a Provider
 	
-	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity userlogin( @RequestBody AccountLoginCommand command) throws Exception{
+	@RequestMapping(value = "/accountcreationProvider", method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity accountcreationProvider( @RequestBody UpdateProviderCommand command) throws Exception{
+		logger.info("accountcreation api is called");
+
+	    Provider provider = new Provider();
+	            
+	    Provider exsistingProvider = providerRepository.findByEmail(command.getEmail());
+		
+		if(exsistingProvider != null){
+			HashMap<String, String> error = new HashMap<String, String>();
+            error.put("message", "Email account already exsists, Please sign in");
+            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+		}
+		
+		 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
+			
+	
+		Date dateCreated = new Date();
+
+		
+        provider.setFirstName(command.getFirstName());
+        provider.setLastName(command.getLastName());
+        provider.setEmail(command.getEmail());
+        provider.setPassword(encoder.encode(command.getPassword()));
+        provider.setAccountCreationTimestamp(dateCreated);
+        provider.setModifiedTimestamp(dateCreated);
+        provider.setProviderStatus(ProviderStatus.Approval_In_Progress);
+        provider.setAddressLine1(command.getAddressLine1());
+        provider.setAddressLine2(command.getAddressLine2());
+        
+        //provider.setAccountType(command.getAccountType());
+
+        providerRepository.save(provider);
+
+		HashMap<String, String> Successmessage = new HashMap<String, String>();
+		Successmessage.put("message", "Account created!, Please check your email for the confirmation email");
+		return new ResponseEntity(Successmessage, HttpStatus.OK);
+		
+	}
+	
+	//Customer Login
+	
+	@RequestMapping(value = "/customerlogin", method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity customerlogin( @RequestBody AccountLoginCommand command) throws Exception{
 
 		Customer exsistingCustomer = customerRepository.findByEmail(command.getUserName());
 		
@@ -113,4 +161,38 @@ public class CommandController {
 			}
 		}
 	}
+	
+	//Provider Login
+	
+	@RequestMapping(value = "/providerlogin", method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity providerlogin( @RequestBody AccountLoginCommand command) throws Exception{
+
+		Provider exsistingProvider = providerRepository.findByEmail(command.getUserName());
+		
+		if(exsistingProvider == null){
+			HashMap<String, String> error = new HashMap<String, String>();
+            error.put("message", "Wrong email or password");
+            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+		}
+		
+		else{
+			String password = exsistingProvider.getPassword();
+			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
+			if(encoder.matches(command.getPassword(), password)){
+				HashMap<String, String> success = new HashMap<String, String>();
+	            success.put("message", "user authenticated");
+	            return new ResponseEntity(success, HttpStatus.OK);
+			}
+			else{
+				HashMap<String, String> error = new HashMap<String, String>();
+	            error.put("message", "Wrong email or password");
+	            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+				
+			}
+		}
+	}
+	
+	
+	
+	
 }
