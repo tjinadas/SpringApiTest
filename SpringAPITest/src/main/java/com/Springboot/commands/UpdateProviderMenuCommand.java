@@ -67,6 +67,7 @@ public class UpdateProviderMenuCommand {
 	public void setModifiedDate(Date modifiedDate) {
 		this.modifiedDate = modifiedDate;
 	}
+
 	private String menuDescription;
 	private Date menustartTime;
 	private Date menuendTime;
@@ -74,5 +75,6 @@ public class UpdateProviderMenuCommand {
 	private boolean sitIn; 
 	private int maxguestSize;
 	private Date modifiedDate; 
+
 
 }

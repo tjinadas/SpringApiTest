@@ -12,9 +12,11 @@ import com.Springboot.domain.Customer;
 
 
 
+
 public interface CustomerRepository extends CrudRepository<Customer, Long>  {
 	
 	   Customer findByEmail (String email);
+	   Customer findById (String id);
 	   List<Customer> findAll();
 
 

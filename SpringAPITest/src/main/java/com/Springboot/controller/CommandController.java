@@ -14,14 +14,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.Springboot.commands.AccountLoginCommand;
 import com.Springboot.commands.UpdateAccountCommand;
 import com.Springboot.commands.UpdateProviderCommand;
+import com.Springboot.commands.UpdateProviderLocationCommand;
 import com.Springboot.commands.UpdateProviderMenuCommand;
 import com.Springboot.domain.Customer;
 import com.Springboot.domain.Customer.AccountStatus;
 import com.Springboot.domain.Provider;
 import com.Springboot.domain.Provider.AccountType;
 import com.Springboot.domain.Provider.ProviderStatus;
+import com.Springboot.domain.ProviderLocation;
 import com.Springboot.domain.ProviderMenu;
 import com.Springboot.repositories.CustomerRepository;
+import com.Springboot.repositories.ProviderLocationRepository;
 import com.Springboot.repositories.ProviderMenuRepository;
 import com.Springboot.repositories.ProviderRepository;
 import com.Springboot.utilities.RandomPasswordGenerator;
@@ -29,6 +32,7 @@ import com.Springboot.utilities.RandomPasswordGenerator;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -52,6 +56,9 @@ public class CommandController {
 	
 	@Autowired
 	ProviderMenuRepository providermenuRepository;
+	
+	@Autowired
+	ProviderLocationRepository providerlocationRepository;
 	
 
 	
@@ -206,10 +213,11 @@ public class CommandController {
 	public @ResponseBody ResponseEntity addmenu( @RequestBody UpdateProviderMenuCommand command) throws Exception{
 		
 		Provider exsistingProvider = providerRepository.findById(command.getProviderID());
-		
-	
-		
 		ProviderMenu providerMenu = new ProviderMenu();
+		
+		
+		
+		Date dateCreated = new Date();
 		  
 		
 		if(exsistingProvider == null){
@@ -222,16 +230,81 @@ public class CommandController {
 			
 			providerMenu.setProviderID(exsistingProvider.getId());
 			providerMenu.setMenuTitle(command.getMenuTitle());
+			providerMenu.setMenuDescription(command.getMenuDescription());
+			providerMenu.setMaxguestSize(command.getMaxguestSize());
+			providerMenu.setSitIn(command.isSitIn());
+			providerMenu.setPrice(command.getPrice());
+			providerMenu.setStartTime(command.getMenustartTime());
+			providerMenu.setEndTime(command.getMenuendTime());
+			providerMenu.setModifiedDate(dateCreated);
+			providerMenu.setMenuStatus("Inactive");
+			
 			providermenuRepository.save(providerMenu);
 			
 		}
 
 		HashMap<String, String> success = new HashMap<String, String>();
-        success.put("message", "user menu submitted");
+        success.put("message", "Menu added, please as review your menu items and mark it as active");
+        return new ResponseEntity(success, HttpStatus.OK);
+	}
+	
+	//// Add location 
+	
+	@RequestMapping(value = "/addservinglocation", method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity addservinglocation( @RequestBody UpdateProviderLocationCommand command) throws Exception{
+		
+		String menuID = command.getMenuID();
+		Date dateCreated = new Date();
+		
+		ProviderMenu providerMenu = providermenuRepository.findBymenuID(menuID);
+		
+		if(providerMenu == null){
+			
+			HashMap<String, String> error = new HashMap<String, String>();
+	        error.put("message", "Menu no longer exsists");
+	        return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+			
+		}
+		
+		
+		
+		ProviderLocation providerLocation = new ProviderLocation();
+		
+		providerLocation.setMenuID(menuID);
+		providerLocation.setStreetNumberandAddress(command.getStreetNumberandAddress());
+		providerLocation.setCity(command.getCity());
+		providerLocation.setProvince(command.getProvince());
+		providerLocation.setCountry(command.getCountry());
+		providerLocation.setPostalCode(command.getPostalCode());
+		providerLocation.setCreationTimestamp(dateCreated);
+		providerLocation.setModifiedTimestamp(dateCreated);
+		
+		
+		providerlocationRepository.save(providerLocation);
+		
+
+		HashMap<String, String> success = new HashMap<String, String>();
+        success.put("message", "Menu serving location added!");
         return new ResponseEntity(success, HttpStatus.OK);
 	}
 	
 	
+	@RequestMapping(value = "/getlocations", method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody List <ProviderLocation> getservinglocation ( @RequestBody UpdateProviderCommand command) throws Exception{
+		
+		Customer exsistingCustomer = customerRepository.findById(command.getId());
+		
+		if(exsistingCustomer != null){
+			List <ProviderLocation> alllocations = providerlocationRepository.findAll();
+			logger.info("returning locations");
+	        return alllocations;
+		}
+		return null;
+		
+		
+		
+        
+	}
+
 	
-	
-}
+	}

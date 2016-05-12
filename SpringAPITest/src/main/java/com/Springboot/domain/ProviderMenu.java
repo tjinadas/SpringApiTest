@@ -119,6 +119,7 @@ public class ProviderMenu {
 	public void setMenuTitle(String menuTitle) {
 		this.menuTitle = menuTitle;
 	}
+	
 
 	private String providerID;
 	
@@ -141,8 +142,4 @@ public class ProviderMenu {
 	private String menuTitle;
 	
 	
-	
-	
-	
-
 }
