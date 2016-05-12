@@ -14,12 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.Springboot.commands.AccountLoginCommand;
 import com.Springboot.commands.UpdateAccountCommand;
 import com.Springboot.commands.UpdateProviderCommand;
+import com.Springboot.commands.UpdateProviderMenuCommand;
 import com.Springboot.domain.Customer;
 import com.Springboot.domain.Customer.AccountStatus;
 import com.Springboot.domain.Provider;
 import com.Springboot.domain.Provider.AccountType;
 import com.Springboot.domain.Provider.ProviderStatus;
+import com.Springboot.domain.ProviderMenu;
 import com.Springboot.repositories.CustomerRepository;
+import com.Springboot.repositories.ProviderMenuRepository;
 import com.Springboot.repositories.ProviderRepository;
 import com.Springboot.utilities.RandomPasswordGenerator;
 
@@ -46,6 +49,10 @@ public class CommandController {
 	
 	@Autowired
 	ProviderRepository providerRepository;
+	
+	@Autowired
+	ProviderMenuRepository providermenuRepository;
+	
 
 	
 	@RequestMapping("/hello")
@@ -190,6 +197,38 @@ public class CommandController {
 				
 			}
 		}
+	}
+	
+	
+	// Add menu API 
+	
+	@RequestMapping(value = "/addmenu", method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity addmenu( @RequestBody UpdateProviderMenuCommand command) throws Exception{
+		
+		Provider exsistingProvider = providerRepository.findById(command.getProviderID());
+		
+	
+		
+		ProviderMenu providerMenu = new ProviderMenu();
+		  
+		
+		if(exsistingProvider == null){
+			HashMap<String, String> error = new HashMap<String, String>();
+            error.put("message", "user ID doesn't exsist");
+            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+		}
+		
+		else{
+			
+			providerMenu.setProviderID(exsistingProvider.getId());
+			providerMenu.setMenuTitle(command.getMenuTitle());
+			providermenuRepository.save(providerMenu);
+			
+		}
+
+		HashMap<String, String> success = new HashMap<String, String>();
+        success.put("message", "user menu submitted");
+        return new ResponseEntity(success, HttpStatus.OK);
 	}
 	
 	
