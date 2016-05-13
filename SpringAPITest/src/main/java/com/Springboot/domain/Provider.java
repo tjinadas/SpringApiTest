@@ -1,7 +1,9 @@
 package com.Springboot.domain;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -186,6 +188,12 @@ public class Provider {
 		public void setMobilenumber(String mobilenumber) {
 			this.mobilenumber = mobilenumber;
 		}
+		
+		  public Map<String, Object> toMap(){
+		        Map map = new TreeMap<>();
+		        map.put("id", id);
+		        return map;
+		    }
 
 
 	        

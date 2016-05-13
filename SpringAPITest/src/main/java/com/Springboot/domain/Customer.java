@@ -1,6 +1,8 @@
 package com.Springboot.domain;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -140,6 +142,12 @@ public class Customer {
 	public void setModifiedTimestamp(Date modifiedTimestamp) {
 		this.modifiedTimestamp = modifiedTimestamp;
 	}
+	
+	  public Map<String, Object> toMap(){
+	        Map map = new TreeMap<>();
+	        map.put("id", id);
+	        return map;
+	    }
 	
 
 }

@@ -13,7 +13,7 @@ import com.Springboot.domain.Customer;
 
 
 
-public interface CustomerRepository extends CrudRepository<Customer, Long>  {
+public interface CustomerRepository extends CrudRepository<Customer, String>  {
 	
 	   Customer findByEmail (String email);
 	   Customer findById (String id);

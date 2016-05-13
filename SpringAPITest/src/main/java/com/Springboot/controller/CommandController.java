@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -27,17 +28,21 @@ import com.Springboot.repositories.CustomerRepository;
 import com.Springboot.repositories.ProviderLocationRepository;
 import com.Springboot.repositories.ProviderMenuRepository;
 import com.Springboot.repositories.ProviderRepository;
+import com.Springboot.utilities.JwtUtility;
 import com.Springboot.utilities.RandomPasswordGenerator;
+
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
-
-
-
+import org.jose4j.jws.JsonWebSignature;
 
 @RestController
 @RequestMapping("api/")
@@ -47,6 +52,12 @@ public class CommandController {
 	
 	@Value("${environment}")
 	private String environment;
+	
+	@Value("${jwt.pk}")
+    private String privateKey;
+	
+	@Value("${jwt.expiry}")
+	private long jwtexpiary;
 	
 	@Autowired
 	CustomerRepository customerRepository;
@@ -62,12 +73,11 @@ public class CommandController {
 	
 
 	
-	@RequestMapping("/hello")
-	public @ResponseBody String greeting(){
-		logger.info("hello api is called");
-		return "Hello";
-	}
 	
+	///************************************** Customer Backend APIS*************************************************///
+	///*************************************************************************************************************///	
+	
+
 	// Registering a customer
 	
 	@RequestMapping(value = "/accountcreationCustomer", method = RequestMethod.POST, consumes = "application/json")
@@ -97,12 +107,74 @@ public class CommandController {
 		customer.setAccountStatus(AccountStatus.Approval_In_Progress);
 
 		customerRepository.save(customer);
+		
+		String jwt = this.generateJwt(customer.toMap());
 
 		HashMap<String, String> Successmessage = new HashMap<String, String>();
 		Successmessage.put("message", "Account created!, Please check your email for the confirmation email");
-		return new ResponseEntity(Successmessage, HttpStatus.OK);
+		return new ResponseEntity(jwt, HttpStatus.OK);
+		//return new ResponseEntity(Successmessage, HttpStatus.OK);
 		
 	}
+	
+	//Customer Login
+	
+		@RequestMapping(value = "/customerlogin", method = RequestMethod.POST, consumes = "application/json")
+		public @ResponseBody ResponseEntity customerlogin( @RequestBody AccountLoginCommand command) throws Exception{
+
+			Customer exsistingCustomer = customerRepository.findByEmail(command.getUserName());
+			
+			if(exsistingCustomer == null){
+				HashMap<String, String> error = new HashMap<String, String>();
+	            error.put("message", "Wrong email or password");
+	            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+			}
+			
+			else{
+				String password = exsistingCustomer.getPassword();
+				BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
+				if(encoder.matches(command.getPassword(), password)){
+					HashMap<String, String> success = new HashMap<String, String>();
+		            success.put("message", "user authenticated");
+		            String jwt = this.generateJwt(exsistingCustomer.toMap());
+		            return new ResponseEntity(jwt, HttpStatus.OK);
+				}
+				else{
+					HashMap<String, String> error = new HashMap<String, String>();
+		            error.put("message", "Wrong email or password");
+		            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+					
+				}
+			}
+		}
+		
+		// Get all the serving locations to feed it into the in app map 
+		
+		@RequestMapping(value = "/getlocations", method = RequestMethod.POST, consumes = "application/json")
+		public @ResponseBody List <ProviderLocation> getservinglocation ( @RequestBody UpdateProviderCommand command , @RequestHeader("auth") String token) throws Exception{
+			
+
+			Customer exsistingCustomer = customerRepository.findOne(JwtUtility.getUserId(token, privateKey));
+			
+			if(exsistingCustomer == null){
+				logger.info("invalid request");
+			}
+			
+			//JwtUtility.getUserId(token, privateKey);
+			
+			//Customer exsistingCustomer = customerRepository.findById(command.getId());
+			
+			if(exsistingCustomer != null){
+				logger.info("Customer found");
+				List <ProviderLocation> alllocations = providerlocationRepository.findAll();
+		        return alllocations;
+			}
+			return null;
+
+		}
+		
+    ///***************************** Provider Backend APIS***********************************************************///
+	///*************************************************************************************************************///	
 	
 	// Registering a Provider
 	
@@ -139,48 +211,25 @@ public class CommandController {
         //provider.setAccountType(command.getAccountType());
 
         providerRepository.save(provider);
+        
+        String jwt = this.generateJwt(provider.toMap());
+
 
 		HashMap<String, String> Successmessage = new HashMap<String, String>();
 		Successmessage.put("message", "Account created!, Please check your email for the confirmation email");
-		return new ResponseEntity(Successmessage, HttpStatus.OK);
+		return new ResponseEntity(jwt, HttpStatus.OK);
 		
 	}
 	
-	//Customer Login
 	
-	@RequestMapping(value = "/customerlogin", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity customerlogin( @RequestBody AccountLoginCommand command) throws Exception{
-
-		Customer exsistingCustomer = customerRepository.findByEmail(command.getUserName());
-		
-		if(exsistingCustomer == null){
-			HashMap<String, String> error = new HashMap<String, String>();
-            error.put("message", "Wrong email or password");
-            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
-		}
-		
-		else{
-			String password = exsistingCustomer.getPassword();
-			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
-			if(encoder.matches(command.getPassword(), password)){
-				HashMap<String, String> success = new HashMap<String, String>();
-	            success.put("message", "user authenticated");
-	            return new ResponseEntity(success, HttpStatus.OK);
-			}
-			else{
-				HashMap<String, String> error = new HashMap<String, String>();
-	            error.put("message", "Wrong email or password");
-	            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
-				
-			}
-		}
-	}
 	
 	//Provider Login
 	
 	@RequestMapping(value = "/providerlogin", method = RequestMethod.POST, consumes = "application/json")
 	public @ResponseBody ResponseEntity providerlogin( @RequestBody AccountLoginCommand command) throws Exception{
 
+		
+		
 		Provider exsistingProvider = providerRepository.findByEmail(command.getUserName());
 		
 		if(exsistingProvider == null){
@@ -195,7 +244,8 @@ public class CommandController {
 			if(encoder.matches(command.getPassword(), password)){
 				HashMap<String, String> success = new HashMap<String, String>();
 	            success.put("message", "user authenticated");
-	            return new ResponseEntity(success, HttpStatus.OK);
+	            String jwt = this.generateJwt(exsistingProvider.toMap());
+	            return new ResponseEntity(jwt, HttpStatus.OK);
 			}
 			else{
 				HashMap<String, String> error = new HashMap<String, String>();
@@ -210,9 +260,11 @@ public class CommandController {
 	// Add menu API 
 	
 	@RequestMapping(value = "/addmenu", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity addmenu( @RequestBody UpdateProviderMenuCommand command) throws Exception{
+	public @ResponseBody ResponseEntity addmenu( @RequestBody UpdateProviderMenuCommand command , @RequestHeader("auth") String token) throws Exception{
 		
-		Provider exsistingProvider = providerRepository.findById(command.getProviderID());
+		Provider exsistingProvider =  providerRepository.findOne(JwtUtility.getUserId(token, privateKey));
+		
+		//Provider exsistingProvider = providerRepository.findById(command.getProviderID());
 		ProviderMenu providerMenu = new ProviderMenu();
 		
 		
@@ -266,8 +318,6 @@ public class CommandController {
 			
 		}
 		
-		
-		
 		ProviderLocation providerLocation = new ProviderLocation();
 		
 		providerLocation.setMenuID(menuID);
@@ -281,30 +331,54 @@ public class CommandController {
 		
 		
 		providerlocationRepository.save(providerLocation);
-		
 
 		HashMap<String, String> success = new HashMap<String, String>();
         success.put("message", "Menu serving location added!");
         return new ResponseEntity(success, HttpStatus.OK);
 	}
 	
+	/// UpdateAccountAPI
 	
-	@RequestMapping(value = "/getlocations", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody List <ProviderLocation> getservinglocation ( @RequestBody UpdateProviderCommand command) throws Exception{
-		
-		Customer exsistingCustomer = customerRepository.findById(command.getId());
-		
-		if(exsistingCustomer != null){
-			List <ProviderLocation> alllocations = providerlocationRepository.findAll();
-			logger.info("returning locations");
-	        return alllocations;
-		}
-		return null;
-		
-		
-		
-        
-	}
+	///UpdateMenuAPI
+	
+	///Update
+	
+	///Generating JWT 
+	
+	 private String generateJwt(Map<String, Object> json) {
+		 
+		 
+	        logger.info("Generating JWT");
+	        long nowMillis = System.currentTimeMillis();
+	        Date now = new Date(nowMillis);
+	        
+	        
+	        Map<String, Object> signature = new HashMap<>();
+	        signature.put("alg", "HS256");
+	        signature.put("typ", "JWT");
+
+	        JsonWebSignature jws = new JsonWebSignature();
+	        
+	        // The payload of the JWS is JSON content of the JWT Claims
+	        jws.setPayload(json.toString());
+	        jws.setContentTypeHeaderValue("jwt");
+	        
+	        JwtBuilder builder = Jwts.builder().setClaims(json)
+					  .setHeader(signature)
+					  .signWith(SignatureAlgorithm.HS256, privateKey);
+	        
+	        if(jwtexpiary >=0){
+	        	
+	        	long expMillis = nowMillis + jwtexpiary;
+	        	Date exp = new Date(expMillis);
+	        	builder.setExpiration(exp);
+	        }
+	        
+	        builder.setIssuedAt(now);
+
+	        return builder.compact();
+	 }
+	
 
 	
 	}
