@@ -264,11 +264,8 @@ public class CommandController {
 		
 		Provider exsistingProvider =  providerRepository.findOne(JwtUtility.getUserId(token, privateKey));
 		
-		//Provider exsistingProvider = providerRepository.findById(command.getProviderID());
 		ProviderMenu providerMenu = new ProviderMenu();
-		
-		
-		
+
 		Date dateCreated = new Date();
 		  
 		
@@ -303,14 +300,25 @@ public class CommandController {
 	//// Add location 
 	
 	@RequestMapping(value = "/addservinglocation", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity addservinglocation( @RequestBody UpdateProviderLocationCommand command) throws Exception{
+	public @ResponseBody ResponseEntity addservinglocation( @RequestBody UpdateProviderLocationCommand command , @RequestHeader("auth") String token) throws Exception{
 		
 		String menuID = command.getMenuID();
 		Date dateCreated = new Date();
+		String providerID =   JwtUtility.getUserId(token, privateKey);
+		
+		Provider exsistingProvider =  providerRepository.findOne(providerID);
+		
+		
+		if(exsistingProvider == null){
+			HashMap<String, String> error = new HashMap<String, String>();
+            error.put("message", "unauthorized request");
+            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+		}
 		
 		ProviderMenu providerMenu = providermenuRepository.findBymenuID(menuID);
 		
-		if(providerMenu == null){
+
+		if(providerMenu == null  ){
 			
 			HashMap<String, String> error = new HashMap<String, String>();
 	        error.put("message", "Menu no longer exsists");
@@ -318,23 +326,27 @@ public class CommandController {
 			
 		}
 		
-		ProviderLocation providerLocation = new ProviderLocation();
+		if((providerMenu.getProviderID().equals(providerID) )){
+			
+			ProviderLocation providerLocation = new ProviderLocation();
+			
+			providerLocation.setMenuID(menuID);
+			providerLocation.setStreetNumberandAddress(command.getStreetNumberandAddress());
+			providerLocation.setCity(command.getCity());
+			providerLocation.setProvince(command.getProvince());
+			providerLocation.setCountry(command.getCountry());
+			providerLocation.setPostalCode(command.getPostalCode());
+			providerLocation.setCreationTimestamp(dateCreated);
+			providerLocation.setModifiedTimestamp(dateCreated);
+			
+			providerlocationRepository.save(providerLocation);
+	
+		}
 		
-		providerLocation.setMenuID(menuID);
-		providerLocation.setStreetNumberandAddress(command.getStreetNumberandAddress());
-		providerLocation.setCity(command.getCity());
-		providerLocation.setProvince(command.getProvince());
-		providerLocation.setCountry(command.getCountry());
-		providerLocation.setPostalCode(command.getPostalCode());
-		providerLocation.setCreationTimestamp(dateCreated);
-		providerLocation.setModifiedTimestamp(dateCreated);
-		
-		
-		providerlocationRepository.save(providerLocation);
-
 		HashMap<String, String> success = new HashMap<String, String>();
         success.put("message", "Menu serving location added!");
         return new ResponseEntity(success, HttpStatus.OK);
+		
 	}
 	
 	/// UpdateAccountAPI
