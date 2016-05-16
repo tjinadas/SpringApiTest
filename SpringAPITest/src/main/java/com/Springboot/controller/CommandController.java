@@ -175,12 +175,12 @@ public class CommandController {
 		// Get all the serving locations to feed it into the in app map 
 		
 		@RequestMapping(value = "/getlocations", method = RequestMethod.POST, consumes = "application/json")
-		public @ResponseBody List <ProviderLocation> getservinglocation ( @RequestBody UpdateProviderCommand command , @RequestHeader("auth") String token) throws Exception{
+		public @ResponseBody ResponseEntity<JSONObject> getservinglocation ( @RequestBody UpdateProviderCommand command , @RequestHeader("auth") String token) throws Exception{
 			
 
 			//Customer exsistingCustomer = customerRepository.findOne(JwtUtility.getUserId(token, privateKey));
 			
-			JSONObject responseDetailsJson = new JSONObject();
+			JSONObject jsonReponse = new JSONObject();
 		    JSONArray jsonArray = new JSONArray();
 			
 			//if(exsistingCustomer == null){
@@ -195,9 +195,11 @@ public class CommandController {
 				logger.info("Customer found");
 				List <ProviderLocation> alllocations = providerlocationRepository.findAll();
 				
+				jsonReponse.put("Menus", alllocations);
 				
+				return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
 				
-		        return alllocations;
+		        //return alllocations;
 			//}
 			//return null;
 
