@@ -36,12 +36,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.jose4j.json.internal.json_simple.JSONObject;
 import org.jose4j.jws.JsonWebSignature;
 
 @RestController
@@ -81,17 +83,20 @@ public class CommandController {
 	// Registering a customer
 	
 	@RequestMapping(value = "/accountcreationCustomer", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity accountcreationCustomer( @RequestBody UpdateAccountCommand command) throws Exception{
+	public @ResponseBody ResponseEntity<JSONObject> accountcreationCustomer( @RequestBody UpdateAccountCommand command) throws Exception{
 		logger.info("accountcreation api is called");
+		
+		JSONObject jsonReponse = new JSONObject();
 
 	    Customer customer = new Customer();
-	            
+	           
 		Customer exsistingCustomer = customerRepository.findByEmail(command.getEmail());
 		
 		if(exsistingCustomer != null){
-			HashMap<String, String> error = new HashMap<String, String>();
-            error.put("message", "Email account already exsists, Please sign in");
-            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+			
+			jsonReponse.put("message", "Email account already exsists, Please sign in");
+			return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
+
 		}
 		
 		 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
@@ -109,40 +114,58 @@ public class CommandController {
 		customerRepository.save(customer);
 		
 		String jwt = this.generateJwt(customer.toMap());
+		
+		jsonReponse.put("message", "Account created!, Please login with your account credentials");
+		jsonReponse.put("jwttoken", jwt);
+		
+		return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
 
-		HashMap<String, String> Successmessage = new HashMap<String, String>();
-		Successmessage.put("message", "Account created!, Please check your email for the confirmation email");
-		return new ResponseEntity(jwt, HttpStatus.OK);
-		//return new ResponseEntity(Successmessage, HttpStatus.OK);
 		
 	}
 	
 	//Customer Login
 	
 		@RequestMapping(value = "/customerlogin", method = RequestMethod.POST, consumes = "application/json")
-		public @ResponseBody ResponseEntity customerlogin( @RequestBody AccountLoginCommand command) throws Exception{
+		public @ResponseBody ResponseEntity<JSONObject> customerlogin( @RequestBody AccountLoginCommand command) throws Exception{
 
 			Customer exsistingCustomer = customerRepository.findByEmail(command.getUserName());
 			
+			JSONObject jsonReponse = new JSONObject();
+			
 			if(exsistingCustomer == null){
-				HashMap<String, String> error = new HashMap<String, String>();
+				
+				jsonReponse.put("message", "Wrong email or password");
+				String jwt = "-1";
+				jsonReponse.put("token", jwt);
+				return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.FORBIDDEN);
+				
+				
+				/*HashMap<String, String> error = new HashMap<String, String>();
 	            error.put("message", "Wrong email or password");
-	            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+	            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);*/
 			}
 			
 			else{
 				String password = exsistingCustomer.getPassword();
 				BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 				if(encoder.matches(command.getPassword(), password)){
-					HashMap<String, String> success = new HashMap<String, String>();
-		            success.put("message", "user authenticated");
-		            String jwt = this.generateJwt(exsistingCustomer.toMap());
-		            return new ResponseEntity(jwt, HttpStatus.OK);
+					jsonReponse.put("message", "user authenticated");
+					String jwt = this.generateJwt(exsistingCustomer.toMap());
+					jsonReponse.put("token", jwt);
+					
+					return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
+					//HashMap<String, String> success = new HashMap<String, String>();
+		            //success.put("message", "user authenticated");	            
+		            //return new ResponseEntity(jwt, HttpStatus.OK);
 				}
 				else{
-					HashMap<String, String> error = new HashMap<String, String>();
+					String jwt = "-1";
+					jsonReponse.put("message", "Wrong email or password");
+					jsonReponse.put("token", jwt);
+					return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.FORBIDDEN);
+					/*HashMap<String, String> error = new HashMap<String, String>();
 		            error.put("message", "Wrong email or password");
-		            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+		            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);*/
 					
 				}
 			}
