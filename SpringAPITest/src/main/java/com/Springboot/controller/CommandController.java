@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.jose4j.json.internal.json_simple.JSONArray;
 import org.jose4j.json.internal.json_simple.JSONObject;
 import org.jose4j.jws.JsonWebSignature;
 
@@ -177,22 +178,28 @@ public class CommandController {
 		public @ResponseBody List <ProviderLocation> getservinglocation ( @RequestBody UpdateProviderCommand command , @RequestHeader("auth") String token) throws Exception{
 			
 
-			Customer exsistingCustomer = customerRepository.findOne(JwtUtility.getUserId(token, privateKey));
+			//Customer exsistingCustomer = customerRepository.findOne(JwtUtility.getUserId(token, privateKey));
 			
-			if(exsistingCustomer == null){
-				logger.info("invalid request");
-			}
+			JSONObject responseDetailsJson = new JSONObject();
+		    JSONArray jsonArray = new JSONArray();
+			
+			//if(exsistingCustomer == null){
+				//logger.info("invalid request");
+			//}
 			
 			//JwtUtility.getUserId(token, privateKey);
 			
 			//Customer exsistingCustomer = customerRepository.findById(command.getId());
 			
-			if(exsistingCustomer != null){
+			//if(exsistingCustomer != null){
 				logger.info("Customer found");
 				List <ProviderLocation> alllocations = providerlocationRepository.findAll();
+				
+				
+				
 		        return alllocations;
-			}
-			return null;
+			//}
+			//return null;
 
 		}
 		
