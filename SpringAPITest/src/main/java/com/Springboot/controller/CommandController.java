@@ -14,20 +14,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.Springboot.commands.AccountLoginCommand;
 import com.Springboot.commands.UpdateAccountCommand;
-import com.Springboot.commands.UpdateProviderCommand;
-import com.Springboot.commands.UpdateProviderLocationCommand;
-import com.Springboot.commands.UpdateProviderMenuCommand;
+import com.Springboot.commands.UpdateHostCommand;
+import com.Springboot.commands.UpdateHostListingLocationCommand;
+import com.Springboot.commands.UpdateHostMenuCommand;
 import com.Springboot.domain.Customer;
 import com.Springboot.domain.Customer.AccountStatus;
-import com.Springboot.domain.Provider;
-import com.Springboot.domain.Provider.AccountType;
-import com.Springboot.domain.Provider.ProviderStatus;
-import com.Springboot.domain.ProviderLocation;
-import com.Springboot.domain.ProviderMenu;
+import com.Springboot.domain.Host;
+import com.Springboot.domain.Host.AccountType;
+import com.Springboot.domain.Host.ProviderStatus;
+import com.Springboot.domain.HostListingLocation;
+import com.Springboot.domain.HostMenu;
 import com.Springboot.repositories.CustomerRepository;
-import com.Springboot.repositories.ProviderLocationRepository;
-import com.Springboot.repositories.ProviderMenuRepository;
-import com.Springboot.repositories.ProviderRepository;
+import com.Springboot.repositories.HostListingLocationRepository;
+import com.Springboot.repositories.HostMenuRepository;
+import com.Springboot.repositories.HostRepository;
 import com.Springboot.utilities.JwtUtility;
 import com.Springboot.utilities.RandomPasswordGenerator;
 
@@ -66,13 +66,16 @@ public class CommandController {
 	CustomerRepository customerRepository;
 	
 	@Autowired
-	ProviderRepository providerRepository;
+	HostRepository hostRepository;
 	
 	@Autowired
-	ProviderMenuRepository providermenuRepository;
+	HostListingLocationRepository hostlocationlistingRepository;
 	
 	@Autowired
-	ProviderLocationRepository providerlocationRepository;
+	HostMenuRepository providermenuRepository;
+	
+	@Autowired
+	HostListingLocationRepository providerlocationRepository;
 	
 
 	
@@ -139,11 +142,7 @@ public class CommandController {
 				String jwt = "-1";
 				jsonReponse.put("token", jwt);
 				return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.FORBIDDEN);
-				
-				
-				/*HashMap<String, String> error = new HashMap<String, String>();
-	            error.put("message", "Wrong email or password");
-	            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);*/
+
 			}
 			
 			else{
@@ -155,18 +154,12 @@ public class CommandController {
 					jsonReponse.put("token", jwt);
 					
 					return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
-					//HashMap<String, String> success = new HashMap<String, String>();
-		            //success.put("message", "user authenticated");	            
-		            //return new ResponseEntity(jwt, HttpStatus.OK);
 				}
 				else{
 					String jwt = "-1";
 					jsonReponse.put("message", "Wrong email or password");
 					jsonReponse.put("token", jwt);
 					return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.FORBIDDEN);
-					/*HashMap<String, String> error = new HashMap<String, String>();
-		            error.put("message", "Wrong email or password");
-		            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);*/
 					
 				}
 			}
@@ -175,33 +168,17 @@ public class CommandController {
 		// Get all the serving locations to feed it into the in app map 
 		
 		@RequestMapping(value = "/getlocations", method = RequestMethod.POST, consumes = "application/json")
-		public @ResponseBody ResponseEntity<JSONObject> getservinglocation ( @RequestBody UpdateProviderCommand command , @RequestHeader("auth") String token) throws Exception{
-			
-
-			//Customer exsistingCustomer = customerRepository.findOne(JwtUtility.getUserId(token, privateKey));
-			
+		public @ResponseBody ResponseEntity<JSONObject> getservinglocation ( @RequestBody UpdateHostCommand command , @RequestHeader("auth") String token) throws Exception{
+					
 			JSONObject jsonReponse = new JSONObject();
 		    JSONArray jsonArray = new JSONArray();
 			
-			//if(exsistingCustomer == null){
-				//logger.info("invalid request");
-			//}
-			
-			//JwtUtility.getUserId(token, privateKey);
-			
-			//Customer exsistingCustomer = customerRepository.findById(command.getId());
-			
-			//if(exsistingCustomer != null){
 				logger.info("Customer found");
-				List <ProviderLocation> alllocations = providerlocationRepository.findAll();
+				List <HostListingLocation> alllocations = providerlocationRepository.findAll();
 				
 				jsonReponse.put("Menus", alllocations);
 				
 				return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
-				
-		        //return alllocations;
-			//}
-			//return null;
 
 		}
 		
@@ -211,17 +188,21 @@ public class CommandController {
 	// Registering a Provider
 	
 	@RequestMapping(value = "/accountcreationProvider", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity accountcreationProvider( @RequestBody UpdateProviderCommand command) throws Exception{
+	public @ResponseBody ResponseEntity<JSONObject> accountcreationProvider( @RequestBody UpdateHostCommand command) throws Exception{
 		logger.info("accountcreation api is called");
 
-	    Provider provider = new Provider();
+	    Host host = new Host();
+	    
+	    JSONObject jsonReponse = new JSONObject();
 	            
-	    Provider exsistingProvider = providerRepository.findByEmail(command.getEmail());
+	    Host exsistingProvider = hostRepository.findByEmail(command.getEmail());
 		
 		if(exsistingProvider != null){
-			HashMap<String, String> error = new HashMap<String, String>();
-            error.put("message", "Email account already exsists, Please sign in");
-            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+			jsonReponse.put("message", "Email account already exsists, Please sign in");
+			String jwt = "-1";
+			jsonReponse.put("token", jwt);
+			return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.FORBIDDEN);
+
 		}
 		
 		 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
@@ -230,26 +211,25 @@ public class CommandController {
 		Date dateCreated = new Date();
 
 		
-        provider.setFirstName(command.getFirstName());
-        provider.setLastName(command.getLastName());
-        provider.setEmail(command.getEmail());
-        provider.setPassword(encoder.encode(command.getPassword()));
-        provider.setAccountCreationTimestamp(dateCreated);
-        provider.setModifiedTimestamp(dateCreated);
-        provider.setProviderStatus(ProviderStatus.Approval_In_Progress);
-        provider.setAddressLine1(command.getAddressLine1());
-        provider.setAddressLine2(command.getAddressLine2());
+        host.setFirstName(command.getFirstName());
+        host.setLastName(command.getLastName());
+        host.setEmail(command.getEmail());
+        host.setPassword(encoder.encode(command.getPassword()));
+        host.setAccountCreationTimestamp(dateCreated);
+        host.setModifiedTimestamp(dateCreated);
+        host.setProviderStatus(ProviderStatus.Approval_In_Progress);
+        host.setStreetNumberandAddress(command.getStreetNumberandAddress());
+        host.setCity(command.getCity());
+        host.setProvince(command.getProvince());
+        host.setCountry(command.getCountry());
         
-        //provider.setAccountType(command.getAccountType());
-
-        providerRepository.save(provider);
+        hostRepository.save(host);
         
-        String jwt = this.generateJwt(provider.toMap());
-
-
-		HashMap<String, String> Successmessage = new HashMap<String, String>();
-		Successmessage.put("message", "Account created!, Please check your email for the confirmation email");
-		return new ResponseEntity(jwt, HttpStatus.OK);
+        String jwt = this.generateJwt(host.toMap());
+        
+        jsonReponse.put("message", "Account created!, Please check your email for the confirmation email");
+		jsonReponse.put("token", jwt);
+		return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
 		
 	}
 	
@@ -258,31 +238,41 @@ public class CommandController {
 	//Provider Login
 	
 	@RequestMapping(value = "/providerlogin", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity providerlogin( @RequestBody AccountLoginCommand command) throws Exception{
+	public @ResponseBody ResponseEntity<JSONObject> providerlogin( @RequestBody AccountLoginCommand command) throws Exception{
 
 		
 		
-		Provider exsistingProvider = providerRepository.findByEmail(command.getUserName());
+		Host exsistingProvider = hostRepository.findByEmail(command.getUserName());
+		
+		JSONObject jsonReponse = new JSONObject();
 		
 		if(exsistingProvider == null){
-			HashMap<String, String> error = new HashMap<String, String>();
-            error.put("message", "Wrong email or password");
-            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+			
+			jsonReponse.put("message", "Wrong email or password");
+			String jwt = "-1";
+			jsonReponse.put("token", jwt);
+			return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.BAD_REQUEST);
+
 		}
 		
 		else{
 			String password = exsistingProvider.getPassword();
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 			if(encoder.matches(command.getPassword(), password)){
-				HashMap<String, String> success = new HashMap<String, String>();
-	            success.put("message", "user authenticated");
-	            String jwt = this.generateJwt(exsistingProvider.toMap());
-	            return new ResponseEntity(jwt, HttpStatus.OK);
+				
+				jsonReponse.put("message", "user authenticated");
+				String jwt = this.generateJwt(exsistingProvider.toMap());
+				jsonReponse.put("token", jwt);
+				return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
+
 			}
 			else{
-				HashMap<String, String> error = new HashMap<String, String>();
-	            error.put("message", "Wrong email or password");
-	            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+				
+				String jwt = "-1";
+				jsonReponse.put("message", "Wrong email or password");
+				jsonReponse.put("token", jwt);
+				return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.FORBIDDEN);
+
 				
 			}
 		}
@@ -292,92 +282,89 @@ public class CommandController {
 	// Add menu API 
 	
 	@RequestMapping(value = "/addmenu", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity addmenu( @RequestBody UpdateProviderMenuCommand command , @RequestHeader("auth") String token) throws Exception{
+	public @ResponseBody ResponseEntity<JSONObject> addmenu( @RequestBody UpdateHostMenuCommand command , @RequestHeader("auth") String token) throws Exception{
 		
-		Provider exsistingProvider =  providerRepository.findOne(JwtUtility.getUserId(token, privateKey));
+		Host exsistingHost =  hostRepository.findOne(JwtUtility.getUserId(token, privateKey));
 		
-		ProviderMenu providerMenu = new ProviderMenu();
+		JSONObject jsonReponse = new JSONObject();
+		
+		
+		HostMenu hostMenu = new HostMenu();
 
 		Date dateCreated = new Date();
 		  
 		
-		if(exsistingProvider == null){
-			HashMap<String, String> error = new HashMap<String, String>();
-            error.put("message", "user ID doesn't exsist");
-            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+		if(exsistingHost == null){
+			
+			jsonReponse.put("message", "user ID doesn't exsist");
+			String jwt = "-1";
+			jsonReponse.put("token", jwt);
+			return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.BAD_REQUEST);
+
 		}
 		
+		
+		
 		else{
+			HostListingLocation hostlistingLocation = hostlocationlistingRepository.findByhostID(exsistingHost.getId());
+			hostMenu.setLocationID(hostlistingLocation.getId());
+			hostMenu.setMenuTitle(command.getMenuTitle());
+			hostMenu.setMenuDescription(command.getMenuDescription());
+			hostMenu.setModifiedDate(dateCreated);
+			hostMenu.setMenuStatus("Inactive");
 			
-			providerMenu.setProviderID(exsistingProvider.getId());
-			providerMenu.setMenuTitle(command.getMenuTitle());
-			providerMenu.setMenuDescription(command.getMenuDescription());
-			providerMenu.setMaxguestSize(command.getMaxguestSize());
-			providerMenu.setSitIn(command.isSitIn());
-			providerMenu.setPrice(command.getPrice());
-			providerMenu.setStartTime(command.getMenustartTime());
-			providerMenu.setEndTime(command.getMenuendTime());
-			providerMenu.setModifiedDate(dateCreated);
-			providerMenu.setMenuStatus("Inactive");
-			
-			providermenuRepository.save(providerMenu);
+			providermenuRepository.save(hostMenu);
 			
 		}
+		
+		jsonReponse.put("message", "Menu added, please as review your menu items and mark it as active");
+		String jwt = this.generateJwt(exsistingHost.toMap());
+		jsonReponse.put("token", jwt);
+		return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);
 
-		HashMap<String, String> success = new HashMap<String, String>();
-        success.put("message", "Menu added, please as review your menu items and mark it as active");
-        return new ResponseEntity(success, HttpStatus.OK);
 	}
 	
 	//// Add location 
 	
 	@RequestMapping(value = "/addservinglocation", method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity addservinglocation( @RequestBody UpdateProviderLocationCommand command , @RequestHeader("auth") String token) throws Exception{
+	public @ResponseBody ResponseEntity<JSONObject> addservinglocation( @RequestBody UpdateHostListingLocationCommand command , @RequestHeader("auth") String token) throws Exception{
 		
-		String menuID = command.getMenuID();
+		//String hostID = command.getMenuID();
 		Date dateCreated = new Date();
 		String providerID =   JwtUtility.getUserId(token, privateKey);
 		
-		Provider exsistingProvider =  providerRepository.findOne(providerID);
+		Host exsistingHost =  hostRepository.findOne(providerID);
+		
+		JSONObject jsonReponse = new JSONObject();
 		
 		
-		if(exsistingProvider == null){
-			HashMap<String, String> error = new HashMap<String, String>();
-            error.put("message", "unauthorized request");
-            return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+		if(exsistingHost == null){
+			
+			jsonReponse.put("message", "unauthorized request");
+			String jwt = "-1";
+			jsonReponse.put("token", jwt);
+			return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.BAD_REQUEST);
 		}
 		
-		ProviderMenu providerMenu = providermenuRepository.findBymenuID(menuID);
+			
+			HostListingLocation hostListingLocation = new HostListingLocation();
+			
+			hostListingLocation.setHostID(exsistingHost.getId());;
+			hostListingLocation.setStreetNumberandAddress(command.getStreetNumberandAddress());
+			hostListingLocation.setCity(command.getCity());
+			hostListingLocation.setProvince(command.getProvince());
+			hostListingLocation.setCountry(command.getCountry());
+			hostListingLocation.setPostalCode(command.getPostalCode());
+			hostListingLocation.setCreationTimestamp(dateCreated);
+			hostListingLocation.setModifiedTimestamp(dateCreated);
+			
+			providerlocationRepository.save(hostListingLocation);
 		
-
-		if(providerMenu == null  ){
+			jsonReponse.put("message", "Menu serving location added!");
+			String jwt = this.generateJwt(exsistingHost.toMap());
+			jsonReponse.put("token", jwt);
+			return new ResponseEntity<JSONObject>(jsonReponse, HttpStatus.OK);	
 			
-			HashMap<String, String> error = new HashMap<String, String>();
-	        error.put("message", "Menu no longer exsists");
-	        return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
-			
-		}
-		
-		if((providerMenu.getProviderID().equals(providerID) )){
-			
-			ProviderLocation providerLocation = new ProviderLocation();
-			
-			providerLocation.setMenuID(menuID);
-			providerLocation.setStreetNumberandAddress(command.getStreetNumberandAddress());
-			providerLocation.setCity(command.getCity());
-			providerLocation.setProvince(command.getProvince());
-			providerLocation.setCountry(command.getCountry());
-			providerLocation.setPostalCode(command.getPostalCode());
-			providerLocation.setCreationTimestamp(dateCreated);
-			providerLocation.setModifiedTimestamp(dateCreated);
-			
-			providerlocationRepository.save(providerLocation);
-	
-		}
-		
-		HashMap<String, String> success = new HashMap<String, String>();
-        success.put("message", "Menu serving location added!");
-        return new ResponseEntity(success, HttpStatus.OK);
 		
 	}
 	

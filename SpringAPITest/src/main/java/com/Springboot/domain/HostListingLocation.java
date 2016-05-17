@@ -10,14 +10,14 @@ import javax.persistence.Id;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
-public class ProviderLocation {
+public class HostListingLocation {
 	
 	@Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
 	
-	private String menuID;
+	private String hostID;
 		
 	private String streetNumberandAddress;
 	
@@ -28,6 +28,12 @@ public class ProviderLocation {
 	private String country;
 	
 	private String postalCode;
+	
+	private boolean defaultAddress;
+	
+	private Date creationTimestamp;
+	
+	private Date modifiedTimestamp;
 	
 	public String getPostalCode() {
 		return postalCode;
@@ -45,12 +51,12 @@ public class ProviderLocation {
 		this.id = id;
 	}
 
-	public String getMenuID() {
-		return menuID;
+	public String getHostID() {
+		return hostID;
 	}
 
-	public void setMenuID(String menuID) {
-		this.menuID = menuID;
+	public void setHostID(String hostID) {
+		this.hostID = hostID;
 	}
 
 	public String getStreetNumberandAddress() {
@@ -109,11 +115,7 @@ public class ProviderLocation {
 		this.modifiedTimestamp = modifiedTimestamp;
 	}
 
-	private boolean defaultAddress;
-	
-	private Date creationTimestamp;
-	
-	private Date modifiedTimestamp;
+
 	
 	
 }

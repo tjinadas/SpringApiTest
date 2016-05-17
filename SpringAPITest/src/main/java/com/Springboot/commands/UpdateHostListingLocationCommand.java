@@ -2,14 +2,8 @@ package com.Springboot.commands;
 
 import java.util.Date;
 
-public class UpdateProviderLocationCommand {
+public class UpdateHostListingLocationCommand {
 	
-	public String getMenuID() {
-		return menuID;
-	}
-	public void setMenuID(String menuID) {
-		this.menuID = menuID;
-	}
 	public String getStreetNumberandAddress() {
 		return streetNumberandAddress;
 	}
@@ -53,7 +47,14 @@ public class UpdateProviderLocationCommand {
 		this.postalCode = postalCode;
 	}
 	
-	private String menuID;
+	private String hostID;
+	public String getHostID() {
+		return hostID;
+	}
+	public void setHostID(String hostID) {
+		this.hostID = hostID;
+	}
+
 	private String streetNumberandAddress;	
 	private String city;
 	private String province;	

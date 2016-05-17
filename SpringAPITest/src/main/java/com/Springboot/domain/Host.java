@@ -14,7 +14,7 @@ import javax.persistence.OneToMany;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
-public class Provider {
+public class Host {
 	
 		@Id
 	    @GeneratedValue(generator = "uuid")
@@ -27,12 +27,45 @@ public class Provider {
 	    
 	    private String email;
 	    
-	    private String addressLine1;
+	    public String getStreetNumberandAddress() {
+			return streetNumberandAddress;
+		}
+
+		public void setStreetNumberandAddress(String streetNumberandAddress) {
+			this.streetNumberandAddress = streetNumberandAddress;
+		}
+
+		public String getCity() {
+			return city;
+		}
+
+		public void setCity(String city) {
+			this.city = city;
+		}
+
+		public String getProvince() {
+			return province;
+		}
+
+		public void setProvince(String province) {
+			this.province = province;
+		}
+
+		public String getCountry() {
+			return country;
+		}
+
+		public void setCountry(String country) {
+			this.country = country;
+		}
+
+		private String streetNumberandAddress;	
 	    
-	    private String addressLine2;
+	    private String city;
 	    
-	    @OneToMany(mappedBy="providerID")
-	    private Set<ProviderMenu> providerMenu;
+		private String province;	
+		
+		private String country;	
 	    
 	    public String getPostalCode() {
 			return postalCode;
@@ -123,22 +156,6 @@ public class Provider {
 
 		public void setEmail(String email) {
 			this.email = email;
-		}
-
-		public String getAddressLine1() {
-			return addressLine1;
-		}
-
-		public void setAddressLine1(String addressLine1) {
-			this.addressLine1 = addressLine1;
-		}
-
-		public String getAddressLine2() {
-			return addressLine2;
-		}
-
-		public void setAddressLine2(String addressLine2) {
-			this.addressLine2 = addressLine2;
 		}
 
 		public double getTotalRating() {

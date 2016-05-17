@@ -1,4 +1,4 @@
-package com.Springboot.domain;
+ package com.Springboot.domain;
 
 import java.util.Date;
 
@@ -12,16 +12,14 @@ import javax.persistence.ManyToOne;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
-public class ProviderMenu {
+public class HostMenu {
 	
 	@Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String menuID;
 	
-	@ManyToOne
-    @JoinColumn(name="id")
-	private Provider provider;
+	
 	
 	public String getMenuID() {
 		return menuID;
@@ -31,21 +29,12 @@ public class ProviderMenu {
 		this.menuID = menuID;
 	}
 
-	public Provider getProvider() {
-		return provider;
+	public String getLocationID() {
+		return locationID;
 	}
 
-	public void setProvider(Provider provider) {
-		this.provider = provider;
-	}
-
-
-	public String getProviderID() {
-		return providerID;
-	}
-
-	public void setProviderID(String providerID) {
-		this.providerID = providerID;
+	public void setLocationID(String locationID) {
+		this.locationID = locationID;
 	}
 
 	public String getMenuStatus() {
@@ -62,46 +51,6 @@ public class ProviderMenu {
 
 	public void setMenuDescription(String menuDescription) {
 		this.menuDescription = menuDescription;
-	}
-
-	public Date getStartTime() {
-		return startTime;
-	}
-
-	public void setStartTime(Date startTime) {
-		this.startTime = startTime;
-	}
-
-	public Date getEndTime() {
-		return endTime;
-	}
-
-	public void setEndTime(Date endTime) {
-		this.endTime = endTime;
-	}
-
-	public double getPrice() {
-		return price;
-	}
-
-	public void setPrice(double price) {
-		this.price = price;
-	}
-
-	public boolean isSitIn() {
-		return sitIn;
-	}
-
-	public void setSitIn(boolean sitIn) {
-		this.sitIn = sitIn;
-	}
-
-	public int getMaxguestSize() {
-		return maxguestSize;
-	}
-
-	public void setMaxguestSize(int maxguestSize) {
-		this.maxguestSize = maxguestSize;
 	}
 
 	public Date getModifiedDate() {
@@ -121,25 +70,15 @@ public class ProviderMenu {
 	}
 	
 
-	private String providerID;
-	
 	private String menuStatus;
 	
 	private String menuDescription;
 	
-	private Date startTime;
-	
-	private Date endTime;
-	
-	private double price;
-	
-	private boolean sitIn; 
-	
-	private int maxguestSize;
-	
 	private Date modifiedDate; 
 	
 	private String menuTitle;
+	
+	private String locationID;
 	
 	
 }

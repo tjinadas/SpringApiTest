@@ -4,14 +4,17 @@ import java.util.Date;
 
 
 
-public class UpdateProviderCommand {
+public class UpdateHostCommand {
 	
 	private String id;
     private String FirstName;
     private String LastName;  
     private String email;    
-    private String addressLine1;    
-    private String addressLine2;	    
+    private String streetNumberandAddress;	
+    private String city;
+	private String province;	
+	private String country;	
+        
     private double totalRating;	    
 	private int ratingCount;	    
     public enum AccountStatus{Active, Terminated, Suspended,Approval_In_Progress};		
@@ -60,17 +63,29 @@ public class UpdateProviderCommand {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public String getAddressLine1() {
-		return addressLine1;
+	public String getStreetNumberandAddress() {
+		return streetNumberandAddress;
 	}
-	public void setAddressLine1(String addressLine1) {
-		this.addressLine1 = addressLine1;
+	public void setStreetNumberandAddress(String streetNumberandAddress) {
+		this.streetNumberandAddress = streetNumberandAddress;
 	}
-	public String getAddressLine2() {
-		return addressLine2;
+	public String getCity() {
+		return city;
 	}
-	public void setAddressLine2(String addressLine2) {
-		this.addressLine2 = addressLine2;
+	public void setCity(String city) {
+		this.city = city;
+	}
+	public String getProvince() {
+		return province;
+	}
+	public void setProvince(String province) {
+		this.province = province;
+	}
+	public String getCountry() {
+		return country;
+	}
+	public void setCountry(String country) {
+		this.country = country;
 	}
 	public double getTotalRating() {
 		return totalRating;
